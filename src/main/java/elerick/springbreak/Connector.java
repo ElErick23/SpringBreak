@@ -28,7 +28,6 @@ public class Connector<T> extends SimpleJpaRepository<T, Long> {
      * @param entity the entity to be added
      * @return true if it was successfully inserted in the database, otherwise false
      */
-    @Transactional
     public boolean add(T entity) {
         if (isUnique(entity) && checkForeignKeys(entity)) {
             super.save(entity);
