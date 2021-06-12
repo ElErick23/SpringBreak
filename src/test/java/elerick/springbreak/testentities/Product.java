@@ -13,9 +13,16 @@ public class Product {
     public Long id;
     @Column(unique = true)
     public String name;
-//    @ManyToOne(optional = false)
-//    public Category category;
+    @ManyToOne(optional = false)
+    public Category category;
     public int stock;
+
+    public Product(String name, Category category, int stock) {
+        this.name = name;
+        this.category = category;
+        this.stock = stock;
+
+    }
 
     @Override
     public String toString() {

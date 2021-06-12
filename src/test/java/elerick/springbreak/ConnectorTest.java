@@ -8,7 +8,11 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
 import javax.persistence.EntityManager;
+
+import java.util.logging.Logger;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @RunWith(SpringRunner.class)
@@ -18,6 +22,7 @@ public class ConnectorTest {
     private Connector<Product> prod_conn;
     private Connector<Category> cat_conn;
     private Connector<User> user_conn;
+    private final static Logger LOGGER = Logger.getLogger(ConnectorTest.class.getName());
 
     @Autowired
     public ConnectorTest(EntityManager em) {
@@ -26,36 +31,47 @@ public class ConnectorTest {
         this.user_conn = new Connector<>(User.class, em);
     }
 
+
     @Test
     public void uniqueFields() {
-        Product p1 = new Product();
-        p1.name = "Mouse";
-        p1.stock = 5;
-        prod_conn.add(p1);
-
-
-        Product p2 = new Product();
-        p2.name = "Mouse";
-        p2.stock = 9;
-        prod_conn.add(p2);
-        System.out.println(prod_conn.findAll());
-//        System.out.println(prod_conn.findById((long) 2));
+        String[] names = new String[]{"A", "B", "A"};
+        for (String name : names) {
+            Category c = new Category(name);
+            cat_conn.add(c);
+            LOGGER.info(c.toString());
+        }
+        int count = cat_conn.findAll().size();
+        LOGGER.info(String.format("Registered: %d", count));
+        assertEquals(2, count);
     }
-
 
     @Test
-    public void AddTest() {
-        Product prod = new Product();
-        prod.name = "Mouse";
-        prod.stock = 5;
-
-        int prod_size = prod_conn.findAll().size();
-        boolean success = prod_conn.add(prod);
-        if (success) {
-            System.out.println(prod_conn.findById((long) 1));
-        }
-
-        int result = success ? prod_size + 1 : prod_size;
-        assertEquals(result, prod_conn.findAll().size());
+    public void foreignKeys() {
+        Category c = new Category("Cat");
+        c.id = (long) 5;
+//        cat_conn.add(c);
+        Product p = new Product("Stuff", c, 10);
+        prod_conn.add(p);
+        LOGGER.info(p.toString());
+        int count = prod_conn.findAll().size();
+        LOGGER.info(String.format("Registered: %d", count));
+        assertEquals(0, count);
     }
+
+    @Test
+    public void notNullableFields() {
+        String[] names = new String[]{"A", null, "C"};
+        for (String name : names) {
+            Category c = new Category(name);
+            cat_conn.add(c);
+            LOGGER.info(c.toString());
+        }
+        int count = cat_conn.findAll().size();
+        LOGGER.info(String.format("Registered: %d", count));
+        assertEquals(2, count);
+
+
+    }
+
+
 }

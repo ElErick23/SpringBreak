@@ -1,12 +1,11 @@
 package elerick.springbreak;
 
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import javax.persistence.Column;
 import javax.persistence.EntityManager;
+import javax.persistence.ManyToOne;
 import javax.persistence.criteria.*;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
 public class Connector<T> extends SimpleJpaRepository<T, Long> {
@@ -43,7 +42,6 @@ public class Connector<T> extends SimpleJpaRepository<T, Long> {
      * @param entity to be validated
      * @return simón si todos campos unicos lo son en realidad
      */
-
     private boolean isUnique(T entity) {
         CriteriaQuery<T> query = cb.createQuery(domainClass);
         Root<T> itemRoot = query.from(domainClass);
@@ -61,6 +59,27 @@ public class Connector<T> extends SimpleJpaRepository<T, Long> {
     }
 
     private boolean checkForeignKeys(T entity) {
+        for (Field f : domainClass.getDeclaredFields())
+            if (f.isAnnotationPresent(ManyToOne.class)) {
+                try {
+                    Connector<?> generic = new Connector<>(f.getType(), em);
+                    Long id = (Long) f.getType().getDeclaredField("id").get(f.get(entity));
+                    if (id == null || !generic.existsById(id)) {
+                        System.out.println("No existe D:");
+                        return false;
+                    }
+                } catch (NoSuchFieldException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
         return true;
+    }
+
+    private CriteriaQuery<T> getQuery() {
+        CriteriaQuery<T> query = cb.createQuery(domainClass);
+        Root<T> itemRoot = query.from(domainClass);
+        return query;
     }
 }

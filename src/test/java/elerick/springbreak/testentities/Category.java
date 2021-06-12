@@ -8,7 +8,16 @@ public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Integer id;
-    @Column(unique = true)
+    public Long id;
+    @Column(unique = true, nullable = false)
     public String name;
+
+    public Category(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("ID: %d, Name: %s", id, name);
+    }
 }
